@@ -50,10 +50,7 @@ A security-focused, minimalist Linux distribution built with modern hardening te
 ## Quick Start
 
 ```bash
-make setup      # Install build dependencies
-make config     # Configure build options
-make all        # Build complete system
-make iso        # Create installation ISO
+make  # Build complete system
 ```
 
 See `docs/` directory for detailed build instructions.
@@ -75,17 +72,9 @@ See `docs/` directory for detailed build instructions.
 git clone https://github.com/John0n1/on1OS.git
 cd on1OS
 
-# Setup build environment
-make setup
-
-# Configure build options
-make config
-
 # Build complete system
 make all
 
-# Create installation ISO
-make iso
 ```
 
 ### Manual Build Process
