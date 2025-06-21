@@ -6,7 +6,7 @@ set -e
 BUILD_DIR="build"
 ISO_DIR="$BUILD_DIR/iso"
 ROOTFS_DIR="$BUILD_DIR/rootfs"
-OUTPUT_ISO="on1OS-$(date +%Y%m%d).iso"
+OUTPUT_ISO="$BUILD_DIR/on1OS.iso"
 
 # Color output
 GREEN='\033[0;32m'

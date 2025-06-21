@@ -21,15 +21,43 @@ UTIL_LINUX_VERSION := latest
 # Target architecture
 ARCH := x86_64
 
-.PHONY: all setup clean kernel rootfs initramfs bootloader iso help
+.PHONY: all setup clean config help kernel rootfs initramfs bootloader iso
 
 all: setup kernel rootfs initramfs bootloader iso
+	@echo "==================================="
 	@echo "on1OS build complete!"
+	@echo "ISO available at: $(BUILD_DIR)/on1OS.iso"
+	@echo "==================================="
+
+setup:
+	@echo "Setting up build environment..."
+	./scripts/setup-build-env.sh
+
+kernel: setup
+	@echo "Building hardened kernel..."
+	./scripts/build-kernel.sh
+
+rootfs: setup
+	@echo "Building root filesystem..."
+	./scripts/build-rootfs.sh
+
+initramfs: kernel rootfs
+	@echo "Generating initramfs..."
+	./scripts/build-initramfs.sh
+
+bootloader: kernel rootfs initramfs
+	@echo "Building bootloader..."
+	./scripts/build-bootloader.sh
+
+iso: kernel rootfs initramfs bootloader
+	@echo "Creating ISO image..."
+	./scripts/create-iso.sh
 
 help:
 	@echo "on1OS Build System"
 	@echo "=================="
 	@echo "Available targets:"
+	@echo "  all        - Build complete on1OS ISO (default target)"
 	@echo "  setup      - Install build dependencies and download sources"
 	@echo "  kernel     - Build hardened Linux kernel"
 	@echo "  rootfs     - Build minimal root filesystem with Buildroot"
@@ -37,31 +65,10 @@ help:
 	@echo "  bootloader - Build and configure GRUB2 bootloader"
 	@echo "  iso        - Create bootable ISO image"
 	@echo "  clean      - Clean build artifacts"
+	@echo "  distclean  - Clean everything including downloads"
 	@echo "  help       - Show this help message"
-
-setup:
-	@echo "Setting up build environment..."
-	./scripts/setup-build-env.sh
-
-kernel:
-	@echo "Building hardened kernel..."
-	./scripts/build-kernel.sh
-
-rootfs:
-	@echo "Building root filesystem..."
-	./scripts/build-rootfs.sh
-
-initramfs:
-	@echo "Generating initramfs..."
-	./scripts/build-initramfs.sh
-
-bootloader:
-	@echo "Building bootloader..."
-	./scripts/build-bootloader.sh
-
-iso:
-	@echo "Creating ISO image..."
-	./scripts/create-iso.sh
+	@echo ""
+	@echo "Final ISO will be created at: $(BUILD_DIR)/on1OS.iso"
 
 config:
 	@echo "Configuring build options..."
@@ -73,6 +80,9 @@ clean:
 	@echo "Build directory cleaned."
 
 distclean: clean
+	@echo "Cleaning downloads and tools..."
+	rm -rf downloads $(TOOLS_DIR)
+	@echo "Complete cleanup finished."
 	@echo "Cleaning downloads and tools..."
 	rm -rf downloads $(TOOLS_DIR)
 	@echo "Complete cleanup finished."

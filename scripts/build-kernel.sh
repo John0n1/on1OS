@@ -128,6 +128,13 @@ CONFIG_NETFILTER_ADVANCED=y
 # CONFIG_KEXEC is not set
 # CONFIG_HIBERNATION is not set
 
+# Disable graphics drivers (not needed for server/security system)
+# CONFIG_DRM is not set
+# CONFIG_DRM_I915 is not set
+# CONFIG_FB is not set
+# CONFIG_VGA_CONSOLE is not set
+# CONFIG_FRAMEBUFFER_CONSOLE is not set
+
 # Essential drivers
 CONFIG_PCI=y
 CONFIG_SATA_AHCI=y

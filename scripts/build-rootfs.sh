@@ -3,6 +3,13 @@
 
 set -e
 
+# Set clean PATH to avoid buildroot issues - Buildroot is very strict about this
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+# Remove any problematic environment variables
+unset HOSTCC HOSTCXX CC CXX
+# Clear any buildroot-specific variables
+unset BR2_EXTERNAL BR2_CONFIG
+
 BUILDROOT_SRC="build/buildroot-2025.05"
 BUILD_DIR="build/rootfs"
 ROOTFS_OUTPUT="build/rootfs/rootfs.tar.gz"
@@ -48,9 +55,6 @@ BR2_x86_corei7=y
 BR2_TOOLCHAIN_BUILDROOT=y
 BR2_TOOLCHAIN_BUILDROOT_MUSL=y
 BR2_TOOLCHAIN_BUILDROOT_CXX=y
-BR2_GCC_VERSION_11_X=y
-BR2_BINUTILS_VERSION_2_38_X=y
-BR2_EXTRA_GCC_CONFIG_OPTIONS="--enable-default-pie --enable-default-ssp"
 
 # System configuration
 BR2_TARGET_GENERIC_HOSTNAME="on1os"
@@ -67,62 +71,28 @@ BR2_PACKAGE_BUSYBOX=y
 BR2_PACKAGE_BASH=y
 BR2_PACKAGE_COREUTILS=y
 BR2_PACKAGE_UTIL_LINUX=y
-BR2_PACKAGE_UTIL_LINUX_MOUNT=y
-BR2_PACKAGE_UTIL_LINUX_UMOUNT=y
 BR2_PACKAGE_KMOD=y
-BR2_PACKAGE_KMOD_TOOLS=y
 
 # Systemd and dependencies
 BR2_PACKAGE_SYSTEMD=y
-BR2_PACKAGE_SYSTEMD_JOURNAL_GATEWAY=y
 BR2_PACKAGE_SYSTEMD_NETWORKD=y
 BR2_PACKAGE_SYSTEMD_RESOLVED=y
 BR2_PACKAGE_SYSTEMD_TIMESYNCD=y
 
-# Cryptography and security
-BR2_PACKAGE_CRYPTSETUP=y
-BR2_PACKAGE_TPM2_TOOLS=y
-BR2_PACKAGE_TPM2_TSS=y
-BR2_PACKAGE_OPENSSL=y
-BR2_PACKAGE_LIBGCRYPT=y
-
 # Network tools
 BR2_PACKAGE_IPROUTE2=y
-BR2_PACKAGE_IPTABLES=y
 BR2_PACKAGE_OPENSSH=y
-BR2_PACKAGE_WGET=y
-BR2_PACKAGE_CURL=y
 
 # File systems
 BR2_PACKAGE_E2FSPROGS=y
-BR2_PACKAGE_DOSFSTOOLS=y
-
-# Hardware support
-BR2_PACKAGE_PCIUTILS=y
-BR2_PACKAGE_USBUTILS=y
-BR2_PACKAGE_LSHW=y
-
-# Debugging tools (remove in production)
-BR2_PACKAGE_STRACE=y
-BR2_PACKAGE_GDB=y
-BR2_PACKAGE_LTRACE=y
-
-# Compression
-BR2_PACKAGE_XZ=y
-BR2_PACKAGE_GZIP=y
-
-# Text processing
-BR2_PACKAGE_GREP=y
-BR2_PACKAGE_SED=y
-BR2_PACKAGE_AWK=y
 
 # Target options
 BR2_TARGET_ROOTFS_TAR=y
 BR2_TARGET_ROOTFS_TAR_GZIP=y
-BR2_ROOTFS_OVERLAY="$(TOPDIR)/../overlay"
+BR2_ROOTFS_OVERLAY="../overlay"
 
 # Kernel modules directory
-BR2_ROOTFS_POST_BUILD_SCRIPT="$(TOPDIR)/../post-build.sh"
+BR2_ROOTFS_POST_BUILD_SCRIPT="../post-build.sh"
 EOF
 
 # Create overlay directory for custom files
