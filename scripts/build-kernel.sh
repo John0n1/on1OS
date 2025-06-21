@@ -3,8 +3,13 @@
 
 set -e
 
-# Source directory
-KERNEL_SRC="build/linux-hardened-6.14.9-hardened1"
+# Source build configuration
+if [ -f "config/build.conf" ]; then
+    source "config/build.conf"
+fi
+
+# Source directory  
+KERNEL_SRC="build/linux-hardened-${KERNEL_VERSION#v}"
 BUILD_DIR="build/kernel"
 ARCH="x86_64"
 

@@ -181,9 +181,9 @@ log_info "Downloading source packages..."
 cd build/downloads
 
 # Download kernel source
-if [ ! -f "linux-hardened-6.14.9-hardened1.tar.gz" ]; then
-    log_info "Downloading linux-hardened kernel 6.14.9-hardened1..."
-    wget https://github.com/anthraxx/linux-hardened/archive/refs/tags/6.14.9-hardened1.tar.gz -O linux-hardened-6.14.9-hardened1.tar.gz
+if [ ! -f "linux-hardened-${KERNEL_VERSION}.tar.gz" ]; then
+    log_info "Downloading linux-hardened kernel ${KERNEL_VERSION}..."
+    wget https://github.com/anthraxx/linux-hardened/archive/refs/tags/${KERNEL_VERSION}.tar.gz -O linux-hardened-${KERNEL_VERSION}.tar.gz
 fi
 
 # Download Buildroot
@@ -211,9 +211,9 @@ if [ ! -f "systemd-256.16.tar.gz" ]; then
 fi
 
 # Download Bash
-if [ ! -f "bash-5.3.tar.gz" ]; then
-    log_info "Downloading Bash 5.3..."
-    wget https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz
+if [ ! -f "bash-${BASH_VERSION}.tar.gz" ]; then
+    log_info "Downloading Bash ${BASH_VERSION}..."
+    wget https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz
 fi
 
 # Download util-linux (latest)
@@ -229,8 +229,8 @@ log_info "Extracting source packages..."
 cd build
 
 # Extract kernel
-if [ ! -d "linux-hardened-6.14.9-hardened1" ]; then
-    tar -xzf downloads/linux-hardened-6.14.9-hardened1.tar.gz
+if [ ! -d "linux-hardened-${KERNEL_VERSION#v}" ]; then
+    tar -xzf downloads/linux-hardened-${KERNEL_VERSION}.tar.gz
 fi
 
 # Extract Buildroot
@@ -249,8 +249,8 @@ if [ ! -d "systemd-256.16" ]; then
 fi
 
 # Extract Bash
-if [ ! -d "bash-5.3" ]; then
-    tar -xzf downloads/bash-5.3.tar.gz
+if [ ! -d "bash-${BASH_VERSION}" ]; then
+    tar -xzf downloads/bash-${BASH_VERSION}.tar.gz
 fi
 
 # GRUB and util-linux are already cloned as Git repositories
