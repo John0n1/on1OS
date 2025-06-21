@@ -1,6 +1,9 @@
 # Makefile for on1OS Build System
 # Security-focused Linux distribution with hardening features
 
+# Ensure non-interactive mode for all commands
+export DEBIAN_FRONTEND=noninteractive
+
 # Build configuration
 BUILD_DIR := build
 KERNEL_DIR := $(BUILD_DIR)/kernel
@@ -80,9 +83,6 @@ clean:
 	@echo "Build directory cleaned."
 
 distclean: clean
-	@echo "Cleaning downloads and tools..."
-	rm -rf downloads $(TOOLS_DIR)
-	@echo "Complete cleanup finished."
 	@echo "Cleaning downloads and tools..."
 	rm -rf downloads $(TOOLS_DIR)
 	@echo "Complete cleanup finished."

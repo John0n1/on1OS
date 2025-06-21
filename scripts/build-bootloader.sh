@@ -3,6 +3,17 @@
 
 set -e
 
+# Ensure non-interactive mode
+export DEBIAN_FRONTEND=noninteractive
+
+# Source build configuration
+if [ -f "config/defaults.conf" ]; then
+    source "config/defaults.conf"
+fi
+if [ -f "config/build.conf" ]; then
+    source "config/build.conf"
+fi
+
 GRUB_SRC="build/downloads/grub-git"
 BUILD_DIR="build/bootloader"
 ISO_DIR="build/iso"
@@ -131,38 +142,7 @@ menuentry 'on1OS (Default)' --class on1os --class gnu-linux --class gnu --class 
     
     # Load kernel
     echo 'Loading on1OS kernel...'
-    linux /vmlinuz root=UUID=__ROOT_UUID__ ro \
-        init=/sbin/init \
-        security=apparmor \
-        apparmor=1 \
-        systemd.machine_id= \
-        rd.luks.uuid=__LUKS_UUID__ \
-        rd.luks.options=discard \
-        intel_iommu=on \
-        amd_iommu=on \
-        iommu=force \
-        slub_debug=FZP \
-        mce=0 \
-        page_alloc.shuffle=1 \
-        pti=on \
-        vsyscall=none \
-        debugfs=off \
-        oops=panic \
-        module.sig_enforce=1 \
-        lockdown=confidentiality \
-        mds=full,nosmt \
-        tsx=off \
-        tsx_async_abort=full,nosmt \
-        kvm.nx_huge_pages=force \
-        nosmt=force \
-        l1tf=full,force \
-        spec_store_bypass_disable=on \
-        spectre_v2=on \
-        spectre_v2_user=on \
-        rd.emergency=reboot \
-        rd.shell=0 \
-        selinux=0 \
-        audit=1
+    linux /vmlinuz root=/dev/sr0 ro quiet splash
     
     # Load initramfs
     echo 'Loading initial ramdisk...'
@@ -178,10 +158,7 @@ menuentry 'on1OS (Recovery Mode)' --class on1os --class gnu-linux --class gnu --
     insmod ext2
     
     echo 'Loading on1OS kernel (recovery)...'
-    linux /vmlinuz root=UUID=__ROOT_UUID__ ro single \
-        init=/sbin/init \
-        systemd.unit=rescue.target \
-        rd.luks.uuid=__LUKS_UUID__
+    linux /vmlinuz root=/dev/sr0 ro single
     
     echo 'Loading initial ramdisk...'
     initrd /initrd.img
@@ -204,8 +181,7 @@ menuentry 'System Information' --users "" {
     echo "- Kernel hardening"
     echo "- Control Flow Integrity"
     echo ""
-    echo "Press any key to return to menu..."
-    read
+    # Removed interactive read for automated builds
 }
 
 menuentry 'Reboot' --users "" {
@@ -267,11 +243,13 @@ echo "Theme graphics would be generated here (background.png, select_*.png, etc.
 
 # Generate GRUB fonts
 log_info "Generating GRUB fonts..."
+mkdir -p "$ISO_DIR/boot/grub/fonts"
 if command -v grub-mkfont >/dev/null 2>&1; then
-    mkdir -p "$ISO_DIR/boot/grub/fonts"
     grub-mkfont -o "$ISO_DIR/boot/grub/fonts/unicode.pf2" /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf 2>/dev/null || \
     grub-mkfont -o "$ISO_DIR/boot/grub/fonts/unicode.pf2" /usr/share/fonts/TTF/DejaVuSans.ttf 2>/dev/null || \
     log_warn "Could not generate GRUB fonts. Install DejaVu fonts."
+else
+    log_warn "grub-mkfont not available. Install GRUB development tools."
 fi
 
 # Create GRUB rescue image for ISO
@@ -279,21 +257,35 @@ log_info "Creating GRUB rescue image..."
 mkdir -p "$BUILD_DIR/grub-rescue"
 
 # Generate GRUB core image for BIOS boot
-grub-mkimage -O i386-pc \
-    -o "$BUILD_DIR/grub-rescue/core.img" \
-    -p /boot/grub \
-    biosdisk part_msdos part_gpt fat ext2 normal boot linux multiboot configfile \
-    search search_fs_uuid search_fs_file gzio
-
-# Copy GRUB boot image
-cp /usr/local/lib/grub/i386-pc/boot.img "$BUILD_DIR/grub-rescue/"
+log_info "Generating GRUB BIOS core image..."
+if command -v grub-mkimage >/dev/null 2>&1; then
+    grub-mkimage -O i386-pc \
+        -o "$BUILD_DIR/grub-rescue/core.img" \
+        -p /boot/grub \
+        biosdisk part_msdos part_gpt fat ext2 normal boot linux multiboot configfile \
+        search search_fs_uuid search_fs_file gzio
+    
+    # Copy GRUB boot image
+    if [ -f "/usr/local/lib/grub/i386-pc/boot.img" ]; then
+        cp /usr/local/lib/grub/i386-pc/boot.img "$BUILD_DIR/grub-rescue/"
+    else
+        log_warn "GRUB boot.img not found at /usr/local/lib/grub/i386-pc/boot.img"
+    fi
+else
+    log_warn "grub-mkimage not available. GRUB rescue images may not work."
+fi
 
 # Generate GRUB EFI image for UEFI boot
-grub-mkimage -O x86_64-efi \
-    -o "$BUILD_DIR/grub-rescue/bootx64.efi" \
-    -p /boot/grub \
-    part_gpt part_msdos fat ext2 normal boot linux multiboot2 configfile \
-    search search_fs_uuid search_fs_file gzio efi_gop efi_uga
+log_info "Generating GRUB EFI image..."
+if command -v grub-mkimage >/dev/null 2>&1; then
+    grub-mkimage -O x86_64-efi \
+        -o "$BUILD_DIR/grub-rescue/bootx64.efi" \
+        -p /boot/grub \
+        part_gpt part_msdos fat ext2 normal boot linux multiboot2 configfile \
+        search search_fs_uuid search_fs_file gzio efi_gop efi_uga
+else
+    log_warn "grub-mkimage not available. EFI boot may not work."
+fi
 
 log_info "GRUB2 bootloader build complete!"
 log_info "GRUB configuration: ${ISO_DIR}/boot/grub/grub.cfg"

@@ -4,7 +4,13 @@
 
 set -e
 
+# Ensure non-interactive mode
+export DEBIAN_FRONTEND=noninteractive
+
 # Source build configuration
+if [ -f "config/defaults.conf" ]; then
+    source "config/defaults.conf"
+fi
 if [ -f "config/build.conf" ]; then
     source "config/build.conf"
 fi
@@ -90,7 +96,18 @@ case $DISTRO in
             cryptsetup \
             python3 \
             python3-dev \
-            python3-setuptools
+            python3-setuptools \
+            pkg-config \
+            libkmod-dev \
+            autotools-dev \
+            autoconf \
+            automake \
+            libtool \
+            gettext \
+            fonts-dejavu-core \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            grub-common
         ;;
     fedora|centos|rhel)
         log_info "Installing dependencies for Fedora/CentOS/RHEL..."

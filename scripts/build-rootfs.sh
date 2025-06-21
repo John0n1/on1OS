@@ -3,6 +3,17 @@
 
 set -e
 
+# Ensure non-interactive mode
+export DEBIAN_FRONTEND=noninteractive
+
+# Source build configuration
+if [ -f "config/defaults.conf" ]; then
+    source "config/defaults.conf"
+fi
+if [ -f "config/build.conf" ]; then
+    source "config/build.conf"
+fi
+
 # Set clean PATH to avoid buildroot issues - Buildroot is very strict about this
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 # Remove any problematic environment variables

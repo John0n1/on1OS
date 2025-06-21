@@ -3,6 +3,17 @@
 
 set -e
 
+# Ensure non-interac# TPM support
+echo
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    tpm_choice="Y"
+    log_info "Using default TPM2 support: Yes"
+else
+    read -p "Enable TPM2 support? [Y/n]: " tpm_choice
+fi
+export DEBIAN_FRONTEND=noninteractive
+
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/build.conf"
 
@@ -36,7 +47,14 @@ echo "Select target architecture:"
 echo "1) x86_64 (default)"
 echo "2) i386"
 echo "3) aarch64"
-read -p "Choice [1]: " arch_choice
+
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    arch_choice=1
+    log_info "Using default architecture: x86_64"
+else
+    read -p "Choice [1]: " arch_choice
+fi
 
 case $arch_choice in
     2) ARCH="i386" ;;
@@ -50,7 +68,14 @@ echo "Select security level:"
 echo "1) Maximum (recommended for production)"
 echo "2) High (good balance)"
 echo "3) Medium (development/testing)"
-read -p "Choice [1]: " security_choice
+
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    security_choice=1
+    log_info "Using default security level: Maximum"
+else
+    read -p "Choice [1]: " security_choice
+fi
 
 case $security_choice in
     2) SECURITY_LEVEL="high" ;;
@@ -60,7 +85,13 @@ esac
 
 # TPM support
 echo
-read -p "Enable TPM2 support? [Y/n]: " tpm_choice
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    tpm_choice="Y"
+    log_info "Using default TPM2 support: Yes"
+else
+    read -p "Enable TPM2 support? [Y/n]: " tpm_choice
+fi
 case $tpm_choice in
     n|N) ENABLE_TPM="no" ;;
     *) ENABLE_TPM="yes" ;;
@@ -68,7 +99,13 @@ esac
 
 # Secure Boot
 echo
-read -p "Enable Secure Boot support? [Y/n]: " secboot_choice
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    secboot_choice="Y"
+    log_info "Using default Secure Boot support: Yes"
+else
+    read -p "Enable Secure Boot support? [Y/n]: " secboot_choice
+fi
 case $secboot_choice in
     n|N) ENABLE_SECUREBOOT="no" ;;
     *) ENABLE_SECUREBOOT="yes" ;;
@@ -76,7 +113,13 @@ esac
 
 # Encryption
 echo
-read -p "Enable full disk encryption (LUKS2)? [Y/n]: " encryption_choice
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    encryption_choice="Y"
+    log_info "Using default full disk encryption: Yes"
+else
+    read -p "Enable full disk encryption (LUKS2)? [Y/n]: " encryption_choice
+fi
 case $encryption_choice in
     n|N) ENABLE_ENCRYPTION="no" ;;
     *) ENABLE_ENCRYPTION="yes" ;;
@@ -88,7 +131,14 @@ echo "Select networking configuration:"
 echo "1) Minimal (loopback only)"
 echo "2) Basic (ethernet + wifi)"
 echo "3) Full (all network drivers)"
-read -p "Choice [2]: " network_choice
+
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    network_choice=2
+    log_info "Using default networking configuration: Basic"
+else
+    read -p "Choice [2]: " network_choice
+fi
 
 case $network_choice in
     1) NETWORK_CONFIG="minimal" ;;
@@ -98,7 +148,13 @@ esac
 
 # Development tools
 echo
-read -p "Include development tools in rootfs? [y/N]: " devtools_choice
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    devtools_choice="N"
+    log_info "Using default development tools: No"
+else
+    read -p "Include development tools in rootfs? [y/N]: " devtools_choice
+fi
 case $devtools_choice in
     y|Y) INCLUDE_DEVTOOLS="yes" ;;
     *) INCLUDE_DEVTOOLS="no" ;;
@@ -107,7 +163,13 @@ esac
 # Build jobs
 echo
 CPU_CORES=$(nproc)
-read -p "Number of parallel build jobs [$CPU_CORES]: " jobs_choice
+# Use default for automated builds
+if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
+    jobs_choice=$CPU_CORES
+    log_info "Using default build jobs: $CPU_CORES"
+else
+    read -p "Number of parallel build jobs [$CPU_CORES]: " jobs_choice
+fi
 MAKE_JOBS=${jobs_choice:-$CPU_CORES}
 
 # Save configuration

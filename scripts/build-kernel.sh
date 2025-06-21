@@ -3,10 +3,19 @@
 
 set -e
 
+# Ensure non-interactive mode
+export DEBIAN_FRONTEND=noninteractive
+
 # Source build configuration
+if [ -f "config/defaults.conf" ]; then
+    source "config/defaults.conf"
+fi
 if [ -f "config/build.conf" ]; then
     source "config/build.conf"
 fi
+
+# Set default kernel version if not set
+KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
 
 # Source directory  
 KERNEL_SRC="build/linux-hardened-${KERNEL_VERSION#v}"

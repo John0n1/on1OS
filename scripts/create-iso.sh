@@ -3,6 +3,17 @@
 
 set -e
 
+# Ensure non-interactive mode
+export DEBIAN_FRONTEND=noninteractive
+
+# Source build configuration
+if [ -f "config/defaults.conf" ]; then
+    source "config/defaults.conf"
+fi
+if [ -f "config/build.conf" ]; then
+    source "config/build.conf"
+fi
+
 BUILD_DIR="build"
 ISO_DIR="$BUILD_DIR/iso"
 ROOTFS_DIR="$BUILD_DIR/rootfs"
@@ -56,7 +67,11 @@ cp -r "$ISO_DIR"/* "$ISO_WORK_DIR/"
 # Create EFI boot directory structure
 log_info "Setting up EFI boot structure..."
 mkdir -p "$ISO_WORK_DIR/EFI/BOOT"
-cp "$BUILD_DIR/grub-rescue/bootx64.efi" "$ISO_WORK_DIR/EFI/BOOT/"
+if [ -f "$BUILD_DIR/grub-rescue/bootx64.efi" ]; then
+    cp "$BUILD_DIR/grub-rescue/bootx64.efi" "$ISO_WORK_DIR/EFI/BOOT/"
+else
+    log_warn "EFI bootloader not found. EFI boot may not work."
+fi
 
 # Create BIOS boot structure
 log_info "Setting up BIOS boot structure..."
