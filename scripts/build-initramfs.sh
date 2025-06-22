@@ -153,7 +153,7 @@ if [ -d "/usr/lib/dracut/modules.d/35systemd-resolved" ] || [ -d "/usr/local/lib
 fi
 
 # Conditionally omit systemd-pcrphase if not available (TPM PCR measurement module)
-if ! command -v /usr/lib/systemd/systemd-pcrphase >/dev/null 2>&1; then
+if [ ! -x /usr/lib/systemd/systemd-pcrphase ]; then
     omit_dracutmodules+=" systemd-pcrphase "
 fi
 
