@@ -236,7 +236,7 @@ if sudo mkdir -p "$THEME_DIR" 2>/dev/null; then
     if command -v update-initramfs >/dev/null 2>&1; then
         sudo update-initramfs -u 2>/dev/null || echo "Warning: Failed to update initramfs"
     else
-        echo "Info: update-initramfs not available (this is normal on some systems)"
+        log_info "update-initramfs not available (this is normal on some systems)"
     fi
     
     echo "on1OS Plymouth theme installation completed!"
