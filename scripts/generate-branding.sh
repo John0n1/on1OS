@@ -221,18 +221,29 @@ set -e
 THEME_DIR="/usr/share/plymouth/themes/on1os"
 
 # Create theme directory
-sudo mkdir -p "$THEME_DIR"
-
-# Copy theme files
-sudo cp -r on1os/* "$THEME_DIR/"
-
-# Install theme
-sudo plymouth-set-default-theme on1os
-
-# Update initramfs
-sudo update-initramfs -u
-
-echo "on1OS Plymouth theme installed successfully!"
+if sudo mkdir -p "$THEME_DIR" 2>/dev/null; then
+    # Copy theme files
+    sudo cp -r on1os/* "$THEME_DIR/" 2>/dev/null || echo "Warning: Failed to copy some theme files"
+    
+    # Install theme
+    if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+        sudo plymouth-set-default-theme on1os 2>/dev/null || echo "Warning: Could not set Plymouth theme"
+    else
+        echo "Warning: plymouth-set-default-theme command not found"
+    fi
+    
+    # Update initramfs
+    if command -v update-initramfs >/dev/null 2>&1; then
+        sudo update-initramfs -u 2>/dev/null || echo "Warning: Failed to update initramfs"
+    else
+        echo "Info: update-initramfs not available (this is normal on some systems)"
+    fi
+    
+    echo "on1OS Plymouth theme installation completed!"
+else
+    echo "Warning: Failed to create Plymouth theme directory, insufficient permissions"
+    echo "Plymouth theme installation skipped."
+fi
 echo "Reboot to see the new boot animation."
 EOF
 
