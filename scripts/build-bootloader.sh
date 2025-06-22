@@ -21,6 +21,7 @@ ISO_DIR="build/iso"
 # Color output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m'
 
 log_info() {
@@ -29,6 +30,10 @@ log_info() {
 
 log_warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 log_info "Building GRUB2 bootloader for on1OS..."
@@ -43,42 +48,21 @@ fi
 mkdir -p "$BUILD_DIR"
 mkdir -p "$ISO_DIR/boot/grub"
 
-# Build GRUB2 from source
-log_info "Building GRUB2 from source..."
-cd "$GRUB_SRC"
+# Use system GRUB tools instead of building from source
+log_info "Using system GRUB tools..."
 
-# Generate build files
-if [ ! -f "configure" ]; then
-    log_info "Generating GRUB build files..."
-    ./bootstrap
+# Check if system GRUB tools are available
+if ! command -v grub-mkimage >/dev/null 2>&1; then
+    log_error "System GRUB tools not found. Installing GRUB..."
+    sudo apt-get update
+    sudo apt-get install -y grub2-common grub-pc-bin grub-efi-amd64-bin
 fi
 
-# Configure GRUB with security features
-if [ ! -f "Makefile" ]; then
-    log_info "Configuring GRUB with security features..."
-    ./configure \
-        --prefix=/usr/local \
-        --enable-grub-emu \
-        --enable-grub-mount \
-        --enable-device-mapper \
-        --enable-liblzma \
-        --enable-libzfs \
-        --enable-grub-mkfont \
-        --enable-grub-themes \
-        --with-platform=pc \
-        --target=x86_64 \
-        --disable-werror
-fi
+# Ensure GRUB directories exist
+sudo mkdir -p /usr/lib/grub/i386-pc
+sudo mkdir -p /usr/lib/grub/x86_64-efi
 
-# Build GRUB
-log_info "Compiling GRUB2..."
-make -j$(nproc)
-
-# Install GRUB to temporary location
-log_info "Installing GRUB2..."
-sudo make install
-
-cd ../../..
+log_info "System GRUB tools are ready."
 
 # Create GRUB configuration
 log_info "Creating GRUB configuration..."
@@ -142,7 +126,7 @@ menuentry 'on1OS (Default)' --class on1os --class gnu-linux --class gnu --class 
     
     # Load kernel
     echo 'Loading on1OS kernel...'
-    linux /vmlinuz root=/dev/sr0 ro quiet splash
+    linux /vmlinuz root=live:CDLABEL=ON1OS ro rd.live.image quiet splash
     
     # Load initramfs
     echo 'Loading initial ramdisk...'
@@ -158,7 +142,7 @@ menuentry 'on1OS (Recovery Mode)' --class on1os --class gnu-linux --class gnu --
     insmod ext2
     
     echo 'Loading on1OS kernel (recovery)...'
-    linux /vmlinuz root=/dev/sr0 ro single
+    linux /vmlinuz root=live:CDLABEL=ON1OS ro rd.live.image single
     
     echo 'Loading initial ramdisk...'
     initrd /initrd.img
@@ -236,10 +220,17 @@ terminal-font: "DejaVu Sans Mono 12"
 }
 EOF
 
-# Create a simple background (placeholder)
+# Copy custom graphics if available
 log_info "Creating theme graphics..."
-# This would typically include actual PNG files, but for now we'll create placeholders
-echo "Theme graphics would be generated here (background.png, select_*.png, etc.)"
+if [ -d "build/branding/grub" ]; then
+    log_info "Using custom on1OS graphics..."
+    cp build/branding/grub/*.png "$ISO_DIR/boot/grub/themes/on1os/"
+else
+    log_warn "Custom graphics not found. Run './scripts/generate-branding.sh' first."
+    # Create simple fallback graphics
+    convert -size 1024x768 xc:"#000033" "$ISO_DIR/boot/grub/themes/on1os/background.png" 2>/dev/null || true
+    convert -size 300x32 xc:"rgba(64,128,255,128)" "$ISO_DIR/boot/grub/themes/on1os/select_c.png" 2>/dev/null || true
+fi
 
 # Generate GRUB fonts
 log_info "Generating GRUB fonts..."
@@ -258,33 +249,34 @@ mkdir -p "$BUILD_DIR/grub-rescue"
 
 # Generate GRUB core image for BIOS boot
 log_info "Generating GRUB BIOS core image..."
-if command -v grub-mkimage >/dev/null 2>&1; then
-    grub-mkimage -O i386-pc \
-        -o "$BUILD_DIR/grub-rescue/core.img" \
-        -p /boot/grub \
-        biosdisk part_msdos part_gpt fat ext2 normal boot linux multiboot configfile \
-        search search_fs_uuid search_fs_file gzio
-    
-    # Copy GRUB boot image
-    if [ -f "/usr/local/lib/grub/i386-pc/boot.img" ]; then
-        cp /usr/local/lib/grub/i386-pc/boot.img "$BUILD_DIR/grub-rescue/"
-    else
-        log_warn "GRUB boot.img not found at /usr/local/lib/grub/i386-pc/boot.img"
-    fi
+grub-mkimage -O i386-pc \
+    -o "$BUILD_DIR/grub-rescue/core.img" \
+    -p /boot/grub \
+    -d /usr/lib/grub/i386-pc \
+    biosdisk part_msdos part_gpt fat ext2 normal boot linux multiboot configfile \
+    search search_fs_uuid search_fs_file gzio
+
+# Copy GRUB boot image
+if [ -f "/usr/lib/grub/i386-pc/boot.img" ]; then
+    cp /usr/lib/grub/i386-pc/boot.img "$BUILD_DIR/grub-rescue/"
+elif [ -f "/usr/local/lib/grub/i386-pc/boot.img" ]; then
+    cp /usr/local/lib/grub/i386-pc/boot.img "$BUILD_DIR/grub-rescue/"
 else
-    log_warn "grub-mkimage not available. GRUB rescue images may not work."
+    log_warn "GRUB boot.img not found, but continuing..."
 fi
 
-# Generate GRUB EFI image for UEFI boot
-log_info "Generating GRUB EFI image..."
-if command -v grub-mkimage >/dev/null 2>&1; then
+# Generate GRUB EFI image for UEFI boot (skip if EFI modules not available)
+log_info "Checking for GRUB EFI support..."
+if [ -d "/usr/lib/grub/x86_64-efi" ]; then
+    log_info "Generating GRUB EFI image..."
     grub-mkimage -O x86_64-efi \
         -o "$BUILD_DIR/grub-rescue/bootx64.efi" \
         -p /boot/grub \
+        -d /usr/lib/grub/x86_64-efi \
         part_gpt part_msdos fat ext2 normal boot linux multiboot2 configfile \
         search search_fs_uuid search_fs_file gzio efi_gop efi_uga
 else
-    log_warn "grub-mkimage not available. EFI boot may not work."
+    log_warn "GRUB EFI modules not available, skipping EFI image generation."
 fi
 
 log_info "GRUB2 bootloader build complete!"

@@ -24,9 +24,9 @@ UTIL_LINUX_VERSION := latest
 # Target architecture
 ARCH := x86_64
 
-.PHONY: all setup clean config help kernel rootfs initramfs bootloader iso
+.PHONY: all setup clean config help kernel rootfs initramfs bootloader iso branding
 
-all: setup kernel rootfs initramfs bootloader iso
+all: setup branding kernel rootfs initramfs bootloader iso
 	@echo "==================================="
 	@echo "on1OS build complete!"
 	@echo "ISO available at: $(BUILD_DIR)/on1OS.iso"
@@ -35,6 +35,10 @@ all: setup kernel rootfs initramfs bootloader iso
 setup:
 	@echo "Setting up build environment..."
 	./scripts/setup-build-env.sh
+
+branding: setup
+	@echo "Generating branding assets..."
+	./scripts/generate-branding.sh
 
 kernel: setup
 	@echo "Building hardened kernel..."
@@ -62,6 +66,7 @@ help:
 	@echo "Available targets:"
 	@echo "  all        - Build complete on1OS ISO (default target)"
 	@echo "  setup      - Install build dependencies and download sources"
+	@echo "  branding   - Generate boot animation and theme assets"
 	@echo "  kernel     - Build hardened Linux kernel"
 	@echo "  rootfs     - Build minimal root filesystem with Buildroot"
 	@echo "  initramfs  - Generate dracut-based initramfs"

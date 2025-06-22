@@ -67,8 +67,8 @@ cp -r "$ISO_DIR"/* "$ISO_WORK_DIR/"
 # Create EFI boot directory structure
 log_info "Setting up EFI boot structure..."
 mkdir -p "$ISO_WORK_DIR/EFI/BOOT"
-if [ -f "$BUILD_DIR/grub-rescue/bootx64.efi" ]; then
-    cp "$BUILD_DIR/grub-rescue/bootx64.efi" "$ISO_WORK_DIR/EFI/BOOT/"
+if [ -f "$BUILD_DIR/bootloader/grub-rescue/bootx64.efi" ]; then
+    cp "$BUILD_DIR/bootloader/grub-rescue/bootx64.efi" "$ISO_WORK_DIR/EFI/BOOT/"
 else
     log_warn "EFI bootloader not found. EFI boot may not work."
 fi
@@ -76,13 +76,14 @@ fi
 # Create BIOS boot structure
 log_info "Setting up BIOS boot structure..."
 mkdir -p "$ISO_WORK_DIR/boot/grub/i386-pc"
-cp /usr/local/lib/grub/i386-pc/*.mod "$ISO_WORK_DIR/boot/grub/i386-pc/" 2>/dev/null || true
-cp /usr/local/lib/grub/i386-pc/*.lst "$ISO_WORK_DIR/boot/grub/i386-pc/" 2>/dev/null || true
+# Copy GRUB BIOS modules from system location
+cp /usr/lib/grub/i386-pc/*.mod "$ISO_WORK_DIR/boot/grub/i386-pc/" 2>/dev/null || true
+cp /usr/lib/grub/i386-pc/*.lst "$ISO_WORK_DIR/boot/grub/i386-pc/" 2>/dev/null || true
 
 # Copy root filesystem if available
-if [ -f "$ROOTFS_DIR/rootfs.tar.gz" ]; then
+if [ -f "$BUILD_DIR/rootfs/buildroot/output/images/rootfs.tar.gz" ]; then
     log_info "Including root filesystem..."
-    cp "$ROOTFS_DIR/rootfs.tar.gz" "$ISO_WORK_DIR/rootfs.tar.gz"
+    cp "$BUILD_DIR/rootfs/buildroot/output/images/rootfs.tar.gz" "$ISO_WORK_DIR/rootfs.tar.gz"
 fi
 
 # Create isolinux configuration for fallback boot

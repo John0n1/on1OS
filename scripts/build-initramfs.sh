@@ -85,6 +85,16 @@ fi
 # Create dracut configuration for on1OS
 log_info "Creating dracut configuration..."
 
+# Install custom Plymouth theme if available
+if [ -d "build/branding/plymouth/on1os" ]; then
+    log_info "Installing custom Plymouth theme..."
+    sudo mkdir -p /usr/share/plymouth/themes/on1os
+    sudo cp -r build/branding/plymouth/on1os/* /usr/share/plymouth/themes/on1os/
+    sudo chown -R root:root /usr/share/plymouth/themes/on1os
+    # Set as default theme
+    sudo plymouth-set-default-theme on1os 2>/dev/null || log_warn "Could not set Plymouth theme"
+fi
+
 # Ensure lsinitrd is available
 if [ ! -f "/usr/local/bin/lsinitrd" ] && [ -f "$DRACUT_SRC/lsinitrd.sh" ]; then
     log_info "Installing missing lsinitrd..."

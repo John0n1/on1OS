@@ -104,10 +104,16 @@ case $DISTRO in
             automake \
             libtool \
             gettext \
+            gettext-base \
+            autopoint \
             fonts-dejavu-core \
             grub-pc-bin \
             grub-efi-amd64-bin \
-            grub-common
+            grub-common \
+            libfuse3-dev \
+            libfuse-dev \
+            fuse3 \
+            libzfslinux-dev
         ;;
     fedora|centos|rhel)
         log_info "Installing dependencies for Fedora/CentOS/RHEL..."
@@ -143,7 +149,20 @@ case $DISTRO in
             cryptsetup \
             python3 \
             python3-devel \
-            python3-setuptools
+            python3-setuptools \
+            pkg-config \
+            autotools \
+            autoconf \
+            automake \
+            libtool \
+            gettext \
+            gettext-devel \
+            grub2-tools \
+            grub2-efi-x64 \
+            fuse3-devel \
+            fuse-devel \
+            fuse3 \
+            fuse
         ;;
     arch)
         log_info "Installing dependencies for Arch Linux..."
@@ -175,7 +194,15 @@ case $DISTRO in
             tpm2-tools \
             cryptsetup \
             python \
-            python-setuptools
+            python-setuptools \
+            pkg-config \
+            autoconf \
+            automake \
+            libtool \
+            gettext \
+            grub \
+            fuse3 \
+            fuse2
         ;;
     *)
         log_error "Unsupported distribution: $DISTRO"
