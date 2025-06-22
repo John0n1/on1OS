@@ -236,7 +236,27 @@ fi
 # Make ISO hybrid (bootable from USB)
 if command -v isohybrid >/dev/null 2>&1; then
     log_info "Making ISO hybrid for USB boot..."
-    isohybrid --uefi "$OUTPUT_ISO"
+    
+    # Check if EFI bootloader exists to determine if we need --uefi
+    if [ -f "$ISO_WORK_DIR/EFI/BOOT/bootx64.efi" ]; then
+        isohybrid --uefi "$OUTPUT_ISO"
+        
+        # Fix partition type issue - isohybrid --uefi sets partition type to 0 (Empty)
+        # which causes "iso file has no partition type" boot errors
+        log_info "Fixing partition type for proper boot support..."
+        if command -v fdisk >/dev/null 2>&1; then
+            # Detect the partition index dynamically
+            PARTITION_INDEX=$(fdisk -l "$OUTPUT_ISO" | awk '/ISO9660/ {print $1}' | sed 's/.*\([0-9]\)$/\1/')
+            if [ -n "$PARTITION_INDEX" ]; then
+                printf "t\n$PARTITION_INDEX\n17\nw\n" | fdisk "$OUTPUT_ISO" >/dev/null 2>&1 || log_warn "Failed to fix partition type"
+            else
+                log_warn "Failed to detect partition index"
+            fi
+        fi
+    else
+        # No EFI bootloader, use standard isohybrid (partition type will be correct)
+        isohybrid "$OUTPUT_ISO"
+    fi
 fi
 
 # Generate checksums
