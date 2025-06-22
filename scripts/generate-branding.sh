@@ -223,7 +223,7 @@ THEME_DIR="/usr/share/plymouth/themes/on1os"
 # Create theme directory
 if sudo mkdir -p "$THEME_DIR" 2>/dev/null; then
     # Copy theme files
-    sudo cp -r on1os/* "$THEME_DIR/" 2>/dev/null || echo "Warning: Failed to copy some theme files"
+    sudo cp -r on1os/* "$THEME_DIR/" 2>/dev/null || log_warn "Failed to copy some theme files"
     
     # Install theme
     if command -v plymouth-set-default-theme >/dev/null 2>&1; then
