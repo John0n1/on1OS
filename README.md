@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-on1OS-blue?logo=github)](https://github.com/John0n1/on1OS)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/Build-Passing-green.svg)](https://github.com/John0n1/on1OS/actions)
+[![on1OS Build CI](https://github.com/John0n1/on1OS/actions/workflows/build.yml/badge.svg)](https://github.com/John0n1/on1OS/actions/workflows/build.yml)
 
 A security-focused, minimalist Linux distribution built with modern hardening techniques and TPM2/LUKS2 support.
 
