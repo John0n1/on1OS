@@ -158,9 +158,14 @@ jobs:
         
     - name: Test ISO boot (quick test)
       run: |
+        ls -lh build/on1OS.iso
+        if [ ! -f "build/on1OS.iso" ]; then
+          echo "❌ ISO file not found in workspace. Check artifact upload/download steps."
+          exit 1
+        fi
         timeout 60s qemu-system-x86_64 \
           -m 1024 \
-          -cdrom on1OS.iso \
+          -cdrom build/on1OS.iso \
           -boot d \
           -nographic \
           -serial stdio || true
@@ -168,8 +173,13 @@ jobs:
         
     - name: Validate ISO structure
       run: |
+        ls -lh build/on1OS.iso
+        if [ ! -f "build/on1OS.iso" ]; then
+          echo "❌ ISO file not found in workspace. Check artifact upload/download steps."
+          exit 1
+        fi
         sudo mkdir -p /mnt/iso
-        sudo mount -o loop on1OS.iso /mnt/iso
+        sudo mount -o loop build/on1OS.iso /mnt/iso
         echo "ISO contents:"
         ls -la /mnt/iso/
         [ -f "/mnt/iso/vmlinuz" ] && echo "✅ Kernel found in ISO" || echo "❌ Kernel missing in ISO"
