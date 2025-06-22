@@ -88,11 +88,20 @@ log_info "Creating dracut configuration..."
 # Install custom Plymouth theme if available
 if [ -d "build/branding/plymouth/on1os" ]; then
     log_info "Installing custom Plymouth theme..."
-    sudo mkdir -p /usr/share/plymouth/themes/on1os
-    sudo cp -r build/branding/plymouth/on1os/* /usr/share/plymouth/themes/on1os/
-    sudo chown -R root:root /usr/share/plymouth/themes/on1os
-    # Set as default theme
-    sudo plymouth-set-default-theme on1os 2>/dev/null || log_warn "Could not set Plymouth theme"
+    if sudo mkdir -p /usr/share/plymouth/themes/on1os 2>/dev/null; then
+        sudo cp -r build/branding/plymouth/on1os/* /usr/share/plymouth/themes/on1os/ 2>/dev/null || true
+        sudo chown -R root:root /usr/share/plymouth/themes/on1os 2>/dev/null || true
+        # Set as default theme - handle gracefully if plymouth-set-default-theme is not available
+        if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+            sudo plymouth-set-default-theme on1os 2>/dev/null || log_warn "Could not set Plymouth theme"
+        else
+            log_warn "plymouth-set-default-theme command not found, skipping theme setup"
+        fi
+    else
+        log_warn "Failed to create Plymouth theme directory, insufficient permissions"
+    fi
+else
+    log_info "No custom Plymouth theme found, using system default"
 fi
 
 # Ensure lsinitrd is available
@@ -120,17 +129,33 @@ add_dracutmodules+=" fs-lib shutdown "
 # Filesystem support
 filesystems+=" ext4 vfat "
 
-# Basic storage drivers
+# Basic storage drivers - add conditionally based on availability
 add_drivers+=" ahci libahci sd_mod ext4 vfat "
 add_drivers+=" xhci_hcd ehci_hcd uhci_hcd "
-add_drivers+=" usb_storage uas "
+add_drivers+=" usb_storage "
+
+# Add uas driver only if available (USB Attached SCSI)
+# This driver may not be available in all kernel configurations
+if modinfo uas >/dev/null 2>&1; then
+    add_drivers+=" uas "
+fi
 
 # Explicitly omit problematic modules
 omit_dracutmodules+=" nvmf iscsi nfs "
 omit_dracutmodules+=" systemd-cryptsetup systemd-coredump systemd-portabled "
-omit_dracutmodules+=" systemd-resolved dbus-broker rngd bluetooth btrfs "
+omit_dracutmodules+=" dbus-broker rngd bluetooth btrfs "
 omit_dracutmodules+=" multipath pcsc biosdevname memstrack modsign "
 omit_dracutmodules+=" tpm2-tss crypt-gpg mksh "
+
+# Conditionally omit systemd modules that may not be available
+if [ -d "/usr/lib/dracut/modules.d/35systemd-resolved" ] || [ -d "/usr/local/lib/dracut/modules.d/35systemd-resolved" ]; then
+    omit_dracutmodules+=" systemd-resolved "
+fi
+
+# Conditionally omit systemd-pcrphase if not available (TPM PCR measurement module)
+if [ ! -x /usr/lib/systemd/systemd-pcrphase ]; then
+    omit_dracutmodules+=" systemd-pcrphase "
+fi
 
 # Explicitly omit network storage modules that cause dependency issues
 omit_drivers+=" nvme-fabrics nvme-rdma nvme-tcp "
