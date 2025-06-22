@@ -170,13 +170,35 @@ fi
 
 # Set up systemd services
 echo "Enabling systemd services..."
-chroot "${TARGET_DIR}" systemctl enable systemd-networkd
-chroot "${TARGET_DIR}" systemctl enable systemd-resolved
-chroot "${TARGET_DIR}" systemctl enable systemd-timesyncd
-chroot "${TARGET_DIR}" systemctl enable tpm2-setup
+# Create systemd service symlinks manually instead of using chroot
+mkdir -p "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants"
+mkdir -p "${TARGET_DIR}/etc/systemd/system/sysinit.target.wants"
+
+# Enable networkd
+if [ -f "${TARGET_DIR}/lib/systemd/system/systemd-networkd.service" ]; then
+    ln -sf /lib/systemd/system/systemd-networkd.service "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/"
+fi
+
+# Enable resolved
+if [ -f "${TARGET_DIR}/lib/systemd/system/systemd-resolved.service" ]; then
+    ln -sf /lib/systemd/system/systemd-resolved.service "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/"
+fi
+
+# Enable timesyncd
+if [ -f "${TARGET_DIR}/lib/systemd/system/systemd-timesyncd.service" ]; then
+    ln -sf /lib/systemd/system/systemd-timesyncd.service "${TARGET_DIR}/etc/systemd/system/sysinit.target.wants/"
+fi
+
+# Enable tpm2-setup if service exists
+if [ -f "${TARGET_DIR}/etc/systemd/system/tpm2-setup.service" ]; then
+    ln -sf /etc/systemd/system/tpm2-setup.service "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/"
+fi
 
 # Secure file permissions
 echo "Setting secure permissions..."
+# Ensure directories exist before setting permissions
+mkdir -p "${TARGET_DIR}/root"
+mkdir -p "${TARGET_DIR}/home"
 chmod 700 "${TARGET_DIR}/root"
 chmod 755 "${TARGET_DIR}/home"
 
