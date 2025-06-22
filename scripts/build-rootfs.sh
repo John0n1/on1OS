@@ -190,8 +190,8 @@ if [ -f "${TARGET_DIR}/lib/systemd/system/systemd-timesyncd.service" ]; then
 fi
 
 # Enable tpm2-setup if service exists
-if [ -f "${TARGET_DIR}/etc/systemd/system/tpm2-setup.service" ]; then
-    ln -sf /etc/systemd/system/tpm2-setup.service "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/"
+if [ -f "${TARGET_DIR}/lib/systemd/system/tpm2-setup.service" ]; then
+    ln -sf /lib/systemd/system/tpm2-setup.service "${TARGET_DIR}/etc/systemd/system/multi-user.target.wants/"
 fi
 
 # Secure file permissions
