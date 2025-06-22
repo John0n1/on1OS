@@ -245,7 +245,13 @@ if command -v isohybrid >/dev/null 2>&1; then
         # which causes "iso file has no partition type" boot errors
         log_info "Fixing partition type for proper boot support..."
         if command -v fdisk >/dev/null 2>&1; then
-            printf "t\n1\n17\nw\n" | fdisk "$OUTPUT_ISO" >/dev/null 2>&1 || log_warn "Failed to fix partition type"
+            # Detect the partition index dynamically
+            PARTITION_INDEX=$(fdisk -l "$OUTPUT_ISO" | awk '/ISO9660/ {print $1}' | sed 's/.*\([0-9]\)$/\1/')
+            if [ -n "$PARTITION_INDEX" ]; then
+                printf "t\n$PARTITION_INDEX\n17\nw\n" | fdisk "$OUTPUT_ISO" >/dev/null 2>&1 || log_warn "Failed to fix partition type"
+            else
+                log_warn "Failed to detect partition index"
+            fi
         fi
     else
         # No EFI bootloader, use standard isohybrid (partition type will be correct)
