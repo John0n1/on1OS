@@ -72,6 +72,19 @@ if [ ! -f "/usr/local/bin/dracut" ] || [ ! -f "/usr/local/bin/lsinitrd" ]; then
     sudo cp -r modules.d /usr/local/lib/dracut/
     sudo cp -r modules /usr/local/lib/dracut/ 2>/dev/null || true
     
+    # Copy essential dracut-ng files for proper operation
+    sudo cp dracut-version.sh /usr/local/lib/dracut/
+    sudo cp dracut-init.sh /usr/local/lib/dracut/
+    sudo cp dracut-functions.sh /usr/local/lib/dracut/
+    sudo cp dracut-logger.sh /usr/local/lib/dracut/
+    
+    # Copy additional binaries to dracut lib directory for fallback
+    sudo cp src/install/dracut-install /usr/local/lib/dracut/
+    sudo cp src/skipcpio/skipcpio /usr/local/lib/dracut/
+    
+    # Fix dracut paths to point to /usr/local/lib/dracut
+    sudo sed -i 's|/usr/lib/dracut|/usr/local/lib/dracut|g' /usr/local/bin/dracut
+    
     # Verify installation
     if [ ! -f "/usr/local/bin/lsinitrd" ]; then
         log_warn "Failed to install lsinitrd, copying again..."
@@ -96,6 +109,10 @@ if [ -d "build/branding/plymouth/on1os" ]; then
             sudo plymouth-set-default-theme on1os 2>/dev/null || log_warn "Could not set Plymouth theme"
         else
             log_warn "plymouth-set-default-theme command not found, skipping theme setup"
+            # Create a symlink to make on1os the default theme manually if possible
+            if [ -d "/usr/share/plymouth/themes/on1os" ] && [ -L "/etc/alternatives/default.plymouth" ]; then
+                sudo ln -sf "/usr/share/plymouth/themes/on1os/on1os.plymouth" "/etc/alternatives/default.plymouth" 2>/dev/null || true
+            fi
         fi
     else
         log_warn "Failed to create Plymouth theme directory, insufficient permissions"
@@ -113,7 +130,7 @@ fi
 
 sudo mkdir -p /etc/dracut.conf.d
 
-sudo tee /etc/dracut.conf.d/on1os.conf > /dev/null << 'EOF'
+sudo tee /etc/dracut.conf.d/on1os.conf > /dev/null << EOF
 # on1OS dracut configuration
 # Minimal initramfs configuration
 
@@ -126,11 +143,8 @@ use_fstab="no"
 add_dracutmodules+=" base kernel-modules rootfs-block "
 add_dracutmodules+=" fs-lib shutdown "
 
-# Live CD support modules - critical for ISO booting
-add_dracutmodules+=" dmsquash-live livenet "
-
-# ISO filesystem and CD-ROM support
-add_dracutmodules+=" iso-scan "
+# Live CD support modules - conditionally added
+add_dracutmodules+=" $LIVE_MODULES "
 
 # Filesystem support
 filesystems+=" ext4 vfat iso9660 squashfs "
@@ -153,7 +167,7 @@ omit_dracutmodules+=" nvmf iscsi nfs "
 omit_dracutmodules+=" systemd-cryptsetup systemd-coredump systemd-portabled "
 omit_dracutmodules+=" dbus-broker rngd bluetooth btrfs "
 omit_dracutmodules+=" multipath pcsc biosdevname memstrack modsign "
-omit_dracutmodules+=" tpm2-tss crypt-gpg mksh "
+omit_dracutmodules+=" tpm2-tss crypt-gpg mksh lvm "
 
 # Conditionally omit systemd modules that may not be available
 if [ -d "/usr/lib/dracut/modules.d/35systemd-resolved" ] || [ -d "/usr/local/lib/dracut/modules.d/35systemd-resolved" ]; then
