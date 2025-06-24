@@ -126,7 +126,7 @@ menuentry 'on1OS (Default)' --class on1os --class gnu-linux --class gnu --class 
     
     # Load kernel
     echo 'Loading on1OS kernel...'
-    linux /vmlinuz root=live:CDLABEL=ON1OS ro rd.live.image quiet splash
+    linux /vmlinuz root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image quiet splash
     
     # Load initramfs
     echo 'Loading initial ramdisk...'
@@ -142,7 +142,22 @@ menuentry 'on1OS (Recovery Mode)' --class on1os --class gnu-linux --class gnu --
     insmod ext2
     
     echo 'Loading on1OS kernel (recovery)...'
-    linux /vmlinuz root=live:CDLABEL=ON1OS ro rd.live.image single
+    linux /vmlinuz root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image single
+    
+    echo 'Loading initial ramdisk...'
+    initrd /initrd.img
+}
+
+menuentry 'on1OS (Debug Mode)' --class on1os --class gnu-linux --class gnu --class os --users "" {
+    recordfail
+    load_video
+    gfxmode $gfxmode
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+    
+    echo 'Loading on1OS kernel (debug)...'
+    linux /vmlinuz root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image rd.debug rd.shell console=tty0 console=ttyS0,115200 debug earlyprintk=ttyS0,115200
     
     echo 'Loading initial ramdisk...'
     initrd /initrd.img

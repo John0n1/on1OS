@@ -126,13 +126,26 @@ use_fstab="no"
 add_dracutmodules+=" base kernel-modules rootfs-block "
 add_dracutmodules+=" fs-lib shutdown "
 
+# Live CD support modules - critical for ISO booting
+add_dracutmodules+=" dmsquash-live livenet "
+
+# ISO filesystem and CD-ROM support
+add_dracutmodules+=" iso-scan "
+
 # Filesystem support
-filesystems+=" ext4 vfat "
+filesystems+=" ext4 vfat iso9660 squashfs "
 
 # Basic storage drivers - add conditionally based on availability
 add_drivers+=" ahci libahci sd_mod ext4 vfat "
 add_drivers+=" xhci_hcd ehci_hcd uhci_hcd "
 add_drivers+=" usb_storage "
+
+# ISO and CD-ROM drivers - essential for live CD booting
+add_drivers+=" iso9660 sr_mod cdrom "
+add_drivers+=" loop squashfs "
+
+# Console and device support for debugging
+add_drivers+=" uart_16550 serial_core "
 
 # Add uas driver only if available (USB Attached SCSI)
 # This driver may not be available in all kernel configurations
@@ -169,6 +182,10 @@ kernel_cmdline="rd.shell=0 rd.emergency=reboot rd.debug=0"
 
 # Host-only mode disabled for generic image
 hostonly_mode="sloppy"
+
+# Enable debug capabilities when rd.debug is passed
+# This allows emergency shell in debug mode
+install_optional_items+=" /sbin/sulogin /bin/sh /usr/bin/systemctl "
 EOF
 
 # Create kernel modules directory structure
