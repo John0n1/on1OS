@@ -6,36 +6,15 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
+source "scripts/lib/graphics.sh"
 
 ASSETS_DIR="assets/branding"
 ANIMATION_DIR="$ASSETS_DIR/boot-animation"
 BUILD_DIR="build"
 ISO_DIR="$BUILD_DIR/iso"
-
-# Color output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_note() {
-    echo -e "${BLUE}[NOTE]${NC} $1"
-}
 
 log_info "Generating branding assets for on1OS..."
 
@@ -181,18 +160,8 @@ log_info "Creating GRUB background..."
 convert "$ANIMATION_DIR/frame-0001.png" -resize 1024x768^ -gravity center -extent 1024x768 \
     "$BUILD_DIR/branding/grub/background.png"
 
-# Create GRUB selection images
-log_info "Creating GRUB menu elements..."
-convert -size 300x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_c.png"
-convert -size 8x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_w.png"
-convert -size 8x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_e.png"
-
-# Create terminal box elements
-convert -size 300x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_c.png"
-convert -size 8x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_w.png"
-convert -size 8x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_e.png"
-convert -size 300x8 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_n.png"
-convert -size 300x8 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_s.png"
+# Create GRUB menu elements
+generate_grub_menu_graphics "$BUILD_DIR/branding/grub"
 
 # Create different resolution wallpapers
 log_info "Creating desktop wallpapers..."

@@ -6,13 +6,9 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
 
 # Set default kernel version if not set
 KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
@@ -21,14 +17,6 @@ KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
 KERNEL_SRC="build/linux-hardened-${KERNEL_VERSION#v}"
 BUILD_DIR="build/kernel"
 ARCH="x86_64"
-
-# Color output
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
 
 log_info "Building hardened Linux kernel..."
 

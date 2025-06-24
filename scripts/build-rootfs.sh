@@ -6,13 +6,9 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
 
 # Set clean PATH to avoid buildroot issues - Buildroot is very strict about this
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -24,14 +20,6 @@ unset BR2_EXTERNAL BR2_CONFIG
 BUILDROOT_SRC="build/buildroot-2025.05"
 BUILD_DIR="build/rootfs"
 ROOTFS_OUTPUT="build/rootfs/rootfs.tar.gz"
-
-# Color output
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
 
 log_info "Building minimal root filesystem with Buildroot..."
 

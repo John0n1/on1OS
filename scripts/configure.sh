@@ -3,37 +3,16 @@
 
 set -e
 
-# Ensure non-interac# TPM support
-echo
-# Use default for automated builds
-if [ -n "$CI" ] || [ "$DEBIAN_FRONTEND" = "noninteractive" ]; then
-    tpm_choice="Y"
-    log_info "Using default TPM2 support: Yes"
-else
-    read -p "Enable TPM2 support? [Y/n]: " tpm_choice
-fi
+# Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/build.conf"
 
-# Color output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Source shared libraries
+source "scripts/lib/log.sh"
 
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_note() {
-    echo -e "${BLUE}[NOTE]${NC} $1"
-}
 
 # Create config directory
 mkdir -p "$CONFIG_DIR"

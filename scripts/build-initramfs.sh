@@ -6,13 +6,9 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
 
 # Set defaults if not configured
 KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
@@ -22,24 +18,6 @@ KERNEL_VERSION_CLEAN=${KERNEL_VERSION#v}
 DRACUT_SRC="build/dracut-ng-100"
 BUILD_DIR="build/initramfs"
 ROOTFS_DIR="build/rootfs"
-
-# Color output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
 
 log_info "Building initramfs with dracut-ng..."
 
