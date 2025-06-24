@@ -86,6 +86,32 @@ if [ -f "$BUILD_DIR/rootfs/buildroot/output/images/rootfs.tar.gz" ]; then
     cp "$BUILD_DIR/rootfs/buildroot/output/images/rootfs.tar.gz" "$ISO_WORK_DIR/rootfs.tar.gz"
 fi
 
+# Create live filesystem structure
+log_info "Creating live filesystem structure..."
+mkdir -p "$ISO_WORK_DIR/live"
+
+# Create squashfs filesystem for live booting
+if [ -d "$ISO_DIR/rootfs" ]; then
+    log_info "Creating squashfs filesystem..."
+    # Create squashfs with compression
+    mksquashfs "$ISO_DIR/rootfs" "$ISO_WORK_DIR/live/filesystem.squashfs" \
+        -comp xz -e boot || {
+        log_warn "Failed to create squashfs, trying with gzip compression..."
+        mksquashfs "$ISO_DIR/rootfs" "$ISO_WORK_DIR/live/filesystem.squashfs" \
+            -comp gzip -e boot || {
+            echo "Error: Failed to create squashfs filesystem with gzip compression."
+            exit 1
+        }
+    }
+    if [ ! -f "$ISO_WORK_DIR/live/filesystem.squashfs" ]; then
+        echo "Error: Squashfs filesystem creation failed."
+        exit 1
+    fi
+    log_info "Squashfs filesystem created: $(du -h "$ISO_WORK_DIR/live/filesystem.squashfs" | cut -f1)"
+else
+    log_warn "Root filesystem directory not found. Live boot may not work."
+fi
+
 # Create isolinux configuration for fallback boot
 log_info "Creating isolinux configuration..."
 mkdir -p "$ISO_WORK_DIR/isolinux"
@@ -117,12 +143,17 @@ LABEL on1os
     MENU LABEL on1OS (Default)
     MENU DEFAULT
     KERNEL /vmlinuz
-    APPEND initrd=/initrd.img root=live:CDLABEL=ON1OS ro rd.live.image quiet splash
+    APPEND initrd=/initrd.img root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image quiet splash
 
 LABEL on1os-recovery
     MENU LABEL on1OS (Recovery Mode)
     KERNEL /vmlinuz
-    APPEND initrd=/initrd.img root=live:CDLABEL=ON1OS ro rd.live.image single
+    APPEND initrd=/initrd.img root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image single
+
+LABEL on1os-debug
+    MENU LABEL on1OS (Debug Mode)  
+    KERNEL /vmlinuz
+    APPEND initrd=/initrd.img root=live:CDLABEL=ON1OS init=/sbin/init ro rd.live.image rd.debug rd.shell console=tty0 console=ttyS0,115200 debug earlyprintk=ttyS0,115200
 
 LABEL reboot
     MENU LABEL Reboot
