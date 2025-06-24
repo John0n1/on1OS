@@ -135,20 +135,15 @@ add_dracutmodules+=" iso-scan "
 # Filesystem support
 filesystems+=" ext4 vfat iso9660 squashfs "
 
-# Basic storage drivers - add conditionally based on availability
-add_drivers+=" ahci libahci sd_mod ext4 vfat "
-add_drivers+=" xhci_hcd ehci_hcd uhci_hcd "
-add_drivers+=" usb_storage "
-
-# ISO and CD-ROM drivers - essential for live CD booting
-add_drivers+=" iso9660 sr_mod cdrom "
-add_drivers+=" loop squashfs "
-
-# Console and device support for debugging
-add_drivers+=" uart_16550 serial_core "
+# Consolidated driver additions
+add_drivers+=" ahci libahci sd_mod ext4 vfat "  # Basic storage drivers
+add_drivers+=" xhci_hcd ehci_hcd uhci_hcd usb_storage "  # USB storage drivers
+add_drivers+=" iso9660 sr_mod cdrom loop squashfs "  # ISO and CD-ROM drivers
+add_drivers+=" uart_16550 serial_core "  # Console and debugging drivers
 
 # Add uas driver only if available (USB Attached SCSI)
 # This driver may not be available in all kernel configurations
+# Add uas driver only if available (USB Attached SCSI)
 if modinfo uas >/dev/null 2>&1; then
     add_drivers+=" uas "
 fi
