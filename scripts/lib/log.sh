@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
 # Shared logging and color definitions for on1OS build system
 #
 # Usage: source scripts/lib/log.sh

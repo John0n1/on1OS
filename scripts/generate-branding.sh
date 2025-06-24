@@ -1,15 +1,16 @@
 #!/bin/bash
 # Generate branding assets for on1OS from animation frames
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source shared libraries
-source "scripts/lib/config.sh"
-source "scripts/lib/log.sh"
-source "scripts/lib/graphics.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/log.sh"
+source "$SCRIPT_DIR/lib/graphics.sh"
 
 ASSETS_DIR="assets/branding"
 ANIMATION_DIR="$ASSETS_DIR/boot-animation"

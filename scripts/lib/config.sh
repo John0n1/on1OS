@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
 # Shared configuration sourcing for on1OS build system
 #
 # Usage: source scripts/lib/config.sh

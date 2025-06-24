@@ -2,14 +2,15 @@
 # Setup build environment for on1OS
 # Repository: https://github.com/John0n1/on1OS
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source shared libraries
-source "scripts/lib/config.sh"
-source "scripts/lib/log.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/log.sh"
 
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then

@@ -1,14 +1,15 @@
 #!/bin/bash
 # Build hardened Linux kernel for on1OS
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source shared libraries
-source "scripts/lib/config.sh"
-source "scripts/lib/log.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/log.sh"
 
 # Set default kernel version if not set
 KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
@@ -111,6 +112,13 @@ CONFIG_EXT4_FS=y
 CONFIG_EXT4_FS_SECURITY=y
 CONFIG_TMPFS=y
 CONFIG_TMPFS_POSIX_ACL=y
+
+# SquashFS support for live CD
+CONFIG_SQUASHFS=m
+CONFIG_SQUASHFS_XZ=y
+CONFIG_SQUASHFS_LZ4=y
+CONFIG_SQUASHFS_LZO=y
+CONFIG_SQUASHFS_ZSTD=y
 
 # Network security
 CONFIG_NETWORK_SECMARK=y
