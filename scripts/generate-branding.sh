@@ -172,13 +172,14 @@ done
 
 # Create an animated GIF from frames (for testing/preview)
 log_info "Creating preview animation..."
-convert -delay 5 "$ANIMATION_DIR"/frame-*.png "$BUILD_DIR/branding/on1os-boot-animation.gif"
+mkdir -p "$BUILD_DIR/branding/previews"
+convert -delay 5 "$ANIMATION_DIR"/frame-*.png "$BUILD_DIR/branding/previews/on1os-boot-animation.gif"
 
 # Create a video version for modern boot systems
 log_info "Creating video animation..."
 ffmpeg -y -framerate 20 -pattern_type glob -i "$ANIMATION_DIR/frame-*.png" \
     -c:v libx264 -pix_fmt yuv420p -movflags +faststart \
-    "$BUILD_DIR/branding/on1os-boot-animation.mp4" >/dev/null 2>&1
+    "$BUILD_DIR/branding/previews/on1os-boot-animation.mp4" >/dev/null 2>&1
 
 # Generate installation script for Plymouth theme
 cat > "$BUILD_DIR/branding/install-plymouth-theme.sh" << 'EOF'
@@ -241,8 +242,8 @@ This directory contains all generated branding assets for on1OS.
 - Resolutions: 1920x1080, 1366x768, 1280x720, 1024x768
 
 ### Preview/Testing
-- Animated GIF: \`on1os-boot-animation.gif\`
-- Video: \`on1os-boot-animation.mp4\`
+- Animated GIF: \`previews/on1os-boot-animation.gif\`
+- Video: \`previews/on1os-boot-animation.mp4\`
 
 ## Source
 - Original frames: ${FRAME_COUNT} PNG files (1080x512)
@@ -263,7 +264,7 @@ log_note "Generated assets:"
 log_note "  - Plymouth theme: $BUILD_DIR/branding/plymouth/on1os/"
 log_note "  - GRUB graphics: $BUILD_DIR/branding/grub/"
 log_note "  - Wallpapers: $BUILD_DIR/branding/wallpapers/"
-log_note "  - Preview: $BUILD_DIR/branding/on1os-boot-animation.gif"
+log_note "  - Preview: $BUILD_DIR/branding/previews/on1os-boot-animation.gif"
 echo
 log_info "To integrate with build system:"
 log_info "  1. GRUB: Copy graphics to ISO boot theme"

@@ -89,6 +89,12 @@ case $DISTRO in
             grub-pc-bin \
             grub-efi-amd64-bin \
             grub-common \
+            grub2-common \
+            imagemagick \
+            ffmpeg \
+            plymouth \
+            syslinux-utils \
+            kmod \
             libfuse3-dev \
             libfuse-dev \
             fuse3 \
@@ -136,8 +142,14 @@ case $DISTRO in
             libtool \
             gettext \
             gettext-devel \
+            dejavu-sans-fonts \
             grub2-tools \
             grub2-efi-x64 \
+            ImageMagick \
+            ffmpeg \
+            plymouth \
+            syslinux \
+            kmod \
             fuse3-devel \
             fuse-devel \
             fuse3 \
