@@ -7,31 +7,9 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
-
-# Color output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
 
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
@@ -111,6 +89,12 @@ case $DISTRO in
             grub-pc-bin \
             grub-efi-amd64-bin \
             grub-common \
+            grub2-common \
+            imagemagick \
+            ffmpeg \
+            plymouth \
+            syslinux-utils \
+            kmod \
             libfuse3-dev \
             libfuse-dev \
             fuse3 \
@@ -158,8 +142,14 @@ case $DISTRO in
             libtool \
             gettext \
             gettext-devel \
+            dejavu-sans-fonts \
             grub2-tools \
             grub2-efi-x64 \
+            ImageMagick \
+            ffmpeg \
+            plymouth \
+            syslinux \
+            kmod \
             fuse3-devel \
             fuse-devel \
             fuse3 \

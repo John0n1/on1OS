@@ -6,36 +6,14 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
 
 BUILD_DIR="build"
 ISO_DIR="$BUILD_DIR/iso"
 ROOTFS_DIR="$BUILD_DIR/rootfs"
 OUTPUT_ISO="$BUILD_DIR/on1OS.iso"
-
-# Color output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_note() {
-    echo -e "${BLUE}[NOTE]${NC} $1"
-}
 
 log_info "Creating bootable ISO image for on1OS..."
 

@@ -6,36 +6,15 @@ set -e
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source build configuration
-if [ -f "config/defaults.conf" ]; then
-    source "config/defaults.conf"
-fi
-if [ -f "config/build.conf" ]; then
-    source "config/build.conf"
-fi
+# Source shared libraries
+source "scripts/lib/config.sh"
+source "scripts/lib/log.sh"
+source "scripts/lib/graphics.sh"
 
 ASSETS_DIR="assets/branding"
 ANIMATION_DIR="$ASSETS_DIR/boot-animation"
 BUILD_DIR="build"
 ISO_DIR="$BUILD_DIR/iso"
-
-# Color output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_note() {
-    echo -e "${BLUE}[NOTE]${NC} $1"
-}
 
 log_info "Generating branding assets for on1OS..."
 
@@ -181,18 +160,8 @@ log_info "Creating GRUB background..."
 convert "$ANIMATION_DIR/frame-0001.png" -resize 1024x768^ -gravity center -extent 1024x768 \
     "$BUILD_DIR/branding/grub/background.png"
 
-# Create GRUB selection images
-log_info "Creating GRUB menu elements..."
-convert -size 300x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_c.png"
-convert -size 8x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_w.png"
-convert -size 8x32 xc:"rgba(64,128,255,128)" "$BUILD_DIR/branding/grub/select_e.png"
-
-# Create terminal box elements
-convert -size 300x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_c.png"
-convert -size 8x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_w.png"
-convert -size 8x200 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_e.png"
-convert -size 300x8 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_n.png"
-convert -size 300x8 xc:"rgba(0,0,0,180)" "$BUILD_DIR/branding/grub/terminal_box_s.png"
+# Create GRUB menu elements
+generate_grub_menu_graphics "$BUILD_DIR/branding/grub"
 
 # Create different resolution wallpapers
 log_info "Creating desktop wallpapers..."
@@ -203,13 +172,14 @@ done
 
 # Create an animated GIF from frames (for testing/preview)
 log_info "Creating preview animation..."
-convert -delay 5 "$ANIMATION_DIR"/frame-*.png "$BUILD_DIR/branding/on1os-boot-animation.gif"
+mkdir -p "$BUILD_DIR/branding/previews"
+convert -delay 5 "$ANIMATION_DIR"/frame-*.png "$BUILD_DIR/branding/previews/on1os-boot-animation.gif"
 
 # Create a video version for modern boot systems
 log_info "Creating video animation..."
 ffmpeg -y -framerate 20 -pattern_type glob -i "$ANIMATION_DIR/frame-*.png" \
     -c:v libx264 -pix_fmt yuv420p -movflags +faststart \
-    "$BUILD_DIR/branding/on1os-boot-animation.mp4" >/dev/null 2>&1
+    "$BUILD_DIR/branding/previews/on1os-boot-animation.mp4" >/dev/null 2>&1
 
 # Generate installation script for Plymouth theme
 cat > "$BUILD_DIR/branding/install-plymouth-theme.sh" << 'EOF'
@@ -272,8 +242,8 @@ This directory contains all generated branding assets for on1OS.
 - Resolutions: 1920x1080, 1366x768, 1280x720, 1024x768
 
 ### Preview/Testing
-- Animated GIF: \`on1os-boot-animation.gif\`
-- Video: \`on1os-boot-animation.mp4\`
+- Animated GIF: \`previews/on1os-boot-animation.gif\`
+- Video: \`previews/on1os-boot-animation.mp4\`
 
 ## Source
 - Original frames: ${FRAME_COUNT} PNG files (1080x512)
@@ -294,7 +264,7 @@ log_note "Generated assets:"
 log_note "  - Plymouth theme: $BUILD_DIR/branding/plymouth/on1os/"
 log_note "  - GRUB graphics: $BUILD_DIR/branding/grub/"
 log_note "  - Wallpapers: $BUILD_DIR/branding/wallpapers/"
-log_note "  - Preview: $BUILD_DIR/branding/on1os-boot-animation.gif"
+log_note "  - Preview: $BUILD_DIR/branding/previews/on1os-boot-animation.gif"
 echo
 log_info "To integrate with build system:"
 log_info "  1. GRUB: Copy graphics to ISO boot theme"
