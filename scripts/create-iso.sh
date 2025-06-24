@@ -98,8 +98,15 @@ if [ -d "$ISO_DIR/rootfs" ]; then
         -comp xz -e boot || {
         log_warn "Failed to create squashfs, trying with gzip compression..."
         mksquashfs "$ISO_DIR/rootfs" "$ISO_WORK_DIR/live/filesystem.squashfs" \
-            -comp gzip -e boot
+            -comp gzip -e boot || {
+            echo "Error: Failed to create squashfs filesystem with gzip compression."
+            exit 1
+        }
     }
+    if [ ! -f "$ISO_WORK_DIR/live/filesystem.squashfs" ]; then
+        echo "Error: Squashfs filesystem creation failed."
+        exit 1
+    fi
     log_info "Squashfs filesystem created: $(du -h "$ISO_WORK_DIR/live/filesystem.squashfs" | cut -f1)"
 else
     log_warn "Root filesystem directory not found. Live boot may not work."
