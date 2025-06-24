@@ -151,7 +151,7 @@ menuentry 'on1OS (Recovery Mode)' --class on1os --class gnu-linux --class gnu --
 menuentry 'on1OS (Debug Mode)' --class on1os --class gnu-linux --class gnu --class os --users "" {
     recordfail
     load_video
-    gfxmode $gfxmode
+    gfxmode "$gfxmode"
     insmod gzio
     insmod part_gpt
     insmod ext2
