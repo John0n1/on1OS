@@ -92,6 +92,7 @@ case $DISTRO in
             isolinux \
             dracut \
             dracut-core \
+            plymouth-themes \
             tpm2-tools \
             cryptsetup \
             python3 \

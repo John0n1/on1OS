@@ -72,6 +72,15 @@ if [ ! -f "/usr/local/bin/dracut" ] || [ ! -f "/usr/local/bin/lsinitrd" ]; then
     sudo cp -r modules.d /usr/local/lib/dracut/
     sudo cp -r modules /usr/local/lib/dracut/ 2>/dev/null || true
     
+    # Copy essential dracut-ng files for proper operation
+    sudo cp dracut-version.sh /usr/local/lib/dracut/
+    sudo cp dracut-init.sh /usr/local/lib/dracut/
+    sudo cp dracut-functions.sh /usr/local/lib/dracut/
+    sudo cp dracut-logger.sh /usr/local/lib/dracut/
+    
+    # Fix dracut paths to point to /usr/local/lib/dracut
+    sudo sed -i 's|/usr/lib/dracut|/usr/local/lib/dracut|g' /usr/local/bin/dracut
+    
     # Verify installation
     if [ ! -f "/usr/local/bin/lsinitrd" ]; then
         log_warn "Failed to install lsinitrd, copying again..."
@@ -96,6 +105,10 @@ if [ -d "build/branding/plymouth/on1os" ]; then
             sudo plymouth-set-default-theme on1os 2>/dev/null || log_warn "Could not set Plymouth theme"
         else
             log_warn "plymouth-set-default-theme command not found, skipping theme setup"
+            # Create a symlink to make on1os the default theme manually if possible
+            if [ -d "/usr/share/plymouth/themes/on1os" ] && [ -L "/etc/alternatives/default.plymouth" ]; then
+                sudo ln -sf "/usr/share/plymouth/themes/on1os/on1os.plymouth" "/etc/alternatives/default.plymouth" 2>/dev/null || true
+            fi
         fi
     else
         log_warn "Failed to create Plymouth theme directory, insufficient permissions"
