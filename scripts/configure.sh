@@ -1,7 +1,7 @@
 #!/bin/bash
 # Configure build options for on1OS
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
@@ -9,8 +9,9 @@ export DEBIAN_FRONTEND=noninteractive
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/build.conf"
 
-# Source shared libraries
-source "scripts/lib/log.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/log.sh"
 
 
 

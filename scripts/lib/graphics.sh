@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
 # Shared graphics generation functions for on1OS build system
 #
 # Usage: source scripts/lib/graphics.sh

@@ -1,15 +1,16 @@
 #!/bin/bash
 # Build and configure GRUB2 bootloader for on1OS
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source shared libraries
-source "scripts/lib/config.sh"
-source "scripts/lib/log.sh"
-source "scripts/lib/graphics.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/log.sh"
+source "$SCRIPT_DIR/lib/graphics.sh"
 
 GRUB_SRC="build/downloads/grub-git"
 BUILD_DIR="build/bootloader"

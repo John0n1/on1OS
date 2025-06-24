@@ -1,14 +1,15 @@
 #!/bin/bash
 # Build initramfs using dracut-ng for on1OS
 
-set -e
+set -euo pipefail
 
 # Ensure non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
-# Source shared libraries
-source "scripts/lib/config.sh"
-source "scripts/lib/log.sh"
+# Source shared libraries using absolute paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/log.sh"
 
 # Set defaults if not configured
 KERNEL_VERSION=${KERNEL_VERSION:-"v6.14.11-hardened1"}
@@ -59,6 +60,9 @@ if [ ! -f "/usr/local/bin/dracut" ] || [ ! -f "/usr/local/bin/lsinitrd" ]; then
     # Copy additional binaries to dracut lib directory for fallback
     sudo cp src/install/dracut-install /usr/local/lib/dracut/
     sudo cp src/skipcpio/skipcpio /usr/local/lib/dracut/
+    
+    # Install dracut-util where dracut expects it
+    sudo install -D /usr/local/lib/dracut/dracut-install /usr/bin/dracut-util
     
     # Fix dracut paths to point to /usr/local/lib/dracut
     sudo sed -i 's|/usr/lib/dracut|/usr/local/lib/dracut|g' /usr/local/bin/dracut
@@ -124,8 +128,15 @@ add_dracutmodules+=" fs-lib shutdown "
 # Live CD support modules - conditionally added
 add_dracutmodules+=" $LIVE_MODULES "
 
+# Explicitly add squashfs support
+add_dracutmodules+=" squash "
+add_dracutmodules+=" squashfs "
+
 # Filesystem support
 filesystems+=" ext4 vfat iso9660 squashfs "
+
+# Install items for dracut-util
+install_items+=" /usr/local/lib/dracut/dracut-util "
 
 # Consolidated driver additions
 add_drivers+=" ahci libahci sd_mod ext4 vfat "  # Basic storage drivers
