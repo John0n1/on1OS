@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install on1OS
+Comment=Install on1OS to hard disk
+Exec=pkexec python3 /usr/local/share/on1os-installer/gui.py
+Icon=system-installer
+Terminal=false
+Categories=System;
+StartupNotify=true

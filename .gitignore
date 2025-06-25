@@ -1,1 +1,4 @@
 build/
+sources/
+*__pycache__*
+dist/
